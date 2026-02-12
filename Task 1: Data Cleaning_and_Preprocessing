@@ -1,0 +1,87 @@
+import pandas as pd
+import numpy as np
+
+file_path = "/content/Mall_Customers.csv"
+df = pd.read_csv(file_path)
+
+print("Dataset Loaded Successfully!\n")
+
+print("First 5 Rows:\n")
+print(df.head())
+
+print("\nDataset Shape:")
+print(df.shape)
+
+print("\nDataset Info:")
+print(df.info())
+
+print("\nStatistical Summary:")
+print(df.describe())
+
+print("\nMissing Values in Each Column:")
+print(df.isnull().sum())
+
+duplicates = df.duplicated().sum()
+print("\nNumber of Duplicate Rows:", duplicates)
+
+if duplicates > 0:
+    df = df.drop_duplicates()
+    print("Duplicates removed.")
+else:
+    print("No duplicate rows found.")
+
+df.columns = (
+    df.columns
+    .str.lower()
+    .str.strip()
+    .str.replace(" ", "_")
+    .str.replace("(", "")
+    .str.replace(")", "")
+    .str.replace("-", "_")
+)
+
+print("\nUpdated Column Names:")
+print(df.columns)
+
+df['gender'] = df['gender'].str.lower().str.strip()
+
+print("\nUnique Values in Gender Column:")
+print(df['gender'].unique())
+
+df['customerid'] = df['customerid'].astype(int)
+df['age'] = df['age'].astype(int)
+df['annual_income_k$'] = df['annual_income_k$'].astype(int)
+df['spending_score_1_100'] = df['spending_score_1_100'].astype(int)
+
+print("\nUpdated Data Types:")
+print(df.dtypes)
+
+def detect_outliers(column_name):
+    Q1 = df[column_name].quantile(0.25)
+    Q3 = df[column_name].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    outliers = df[(df[column_name] < lower_bound) |
+                  (df[column_name] > upper_bound)]
+
+    print(f"\nOutliers in {column_name}: {len(outliers)}")
+    return outliers
+
+numeric_columns = ['age', 'annual_income_k$', 'spending_score_1_100']
+
+for col in numeric_columns:
+    detect_outliers(col)
+
+print("\nFinal Dataset Info:")
+print(df.info())
+
+print("\nFinal Missing Values Check:")
+print(df.isnull().sum())
+
+output_file = "cleaned_mall_customers.csv"
+df.to_csv(output_file, index=False)
+
+print(f"\nCleaned dataset saved as '{output_file}'")
